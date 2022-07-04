@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from FeatureExtractor import FeatureExtractor
+from CudaDeviceSingleton import CudaDeviceSingleton
 
 def calculate_Mahalanobis_distance(Covariance_mat_pseudoinverse, features_obs_batch, mean_features_all_observations):
     """
@@ -31,7 +32,8 @@ def calculate_covariance_matrix_pseudoinverse(tensor_bunch, feature_extractor: F
   total_number_obs_1 = tensor_bunch.shape[0]
   print("Number of observations", total_number_obs_1)
   print("Number of dimensions ", dimensions)
-  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  device = CudaDeviceSingleton().get_device()
+  
   features_all_observations = torch.zeros((total_number_obs_1, dimensions), device=device)
 
   # print("total number of obs ", total_number_obs_1)

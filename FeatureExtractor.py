@@ -2,6 +2,7 @@ import torch
 import torchvision.models as models
 from fastai.vision.all import *
 from fastai.vision.data import *
+from CudaDeviceSingleton import CudaDeviceSingleton
 
 class FeatureExtractor:
   def __init__(self):
@@ -24,7 +25,7 @@ class FeatureExtractor:
       model_loaded = torch_dict.model
       model_loaded.eval()
       # put it on gpu!
-      device = 'cuda' if torch.cuda.is_available() else 'cpu'
+      device = CudaDeviceSingleton().get_device()
       model_loaded = model_loaded.to(device=device)
       # usually the last set of layers act as classifier, therefore we discard it    
       feature_extractor = model_loaded.features
