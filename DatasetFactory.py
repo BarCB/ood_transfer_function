@@ -6,7 +6,7 @@ from DatasetsEnum import DatasetsEnum
 import os
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from BalancedBatchSampler import BalancedBatchSampler
+
 from pathlib import Path
 
 class DatasetFactory:
@@ -26,24 +26,6 @@ class DatasetFactory:
         print("Unlabeled dataset created")   
         print(dataset)
         return dataset
-    
-    def get_random_batch(self, dataset, batch_size):
-        data_loader = torch.utils.data.DataLoader(dataset = dataset, batch_size = batch_size, shuffle = True, drop_last = True)        
-        return self.__dataloader_to_batch(data_loader)
-
-    def get_balance_batch(self, dataset:torch.utils.data.Dataset, batch_size:int): 
-        sampler = BalancedBatchSampler(dataset)                                                                               
-        data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, sampler = sampler, drop_last = True)    
-        return self.__dataloader_to_batch(data_loader)
-
-    def __dataloader_to_batch(self, dataloader):
-        device = CudaDeviceSingleton().get_device()
-        for image, label in dataloader:
-            #move data to specific device
-            images = image.to(device)
-            labels = label.to(device)
-        
-        return images, labels 
 
     def __get_transformation(self):
         return transforms.Compose([

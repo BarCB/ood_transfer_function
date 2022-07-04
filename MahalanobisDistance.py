@@ -18,7 +18,7 @@ def calculate_Mahalanobis_distance(Covariance_mat_pseudoinverse, features_obs_ba
     likelihood_batch = fac_quad_form.mm(Covariance_mat_pseudoinverse).mm(fac_quad_form_t).item()
     return likelihood_batch
 
-def calculate_covariance_matrix_pseudoinverse(tensor_bunch, feature_extractor: FeatureExtractor, dimensions: int, batch_size: int = 5 , num_bins=15, plot=False):
+def calculate_covariance_matrix_pseudoinverse(tensor_bunch, feature_extractor: FeatureExtractor, dimensions: int, batch_size: int = 5):
   """
   Returns the pseudo inverse of the cov matrix
   :param tensor_bunch: 

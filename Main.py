@@ -1,9 +1,10 @@
+import os
 from DatasetFactory import DatasetFactory
 from DatasetsEnum import DatasetsEnum
 from FeatureExtractor import FeatureExtractor
+from DatasetSampleExtractor import DatasetSampleExtractor
 import MahalanobisDistance as md
 from torchvision.utils import save_image
-import os
 from pathlib import Path
 
 def score_unlabeled_batch(unlabeled_images, feature_extractor : FeatureExtractor, pseudoinverse_covariance_matrix, mean_features_all_observations):
@@ -69,25 +70,25 @@ def main():
     else:
         destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments\\" + unlabeled_dataset_name.value + "_negative_p"+str(augmentation_probability) + "_from" + str(batch_size_unlabeled) + "Images"
 
-    labeled_images, _ = factory.get_random_batch(labeled_dataset, batch_size_labeled)
-    print("Labeled images shape(#images, channels, x, y): ", labeled_images.shape)
+    labeled_batch = DatasetSampleExtractor.get_random_batch(labeled_dataset, batch_size_labeled)
+    print("Labeled images shape(#images, channels, x, y): ", labeled_batch.images.shape)
     
     feature_extractor = FeatureExtractor()
-    labeled_features_bunch = feature_extractor.extract_feature_bunch(labeled_images)
+    labeled_features_bunch = feature_extractor.extract_feature_bunch(labeled_batch.images)
     features_quantity = labeled_features_bunch.shape[1]
-    pseudoinverse_covariance_matrix, mean_features_all_observations = md.calculate_covariance_matrix_pseudoinverse(labeled_images, feature_extractor, features_quantity, batch_size_labeled)
+    pseudoinverse_covariance_matrix, mean_features_all_observations = md.calculate_covariance_matrix_pseudoinverse(labeled_batch.images, feature_extractor, features_quantity, batch_size_labeled)
     for current_batch in range(0, batch_quantity):
         print("Current batch: ", current_batch)
         
-        unlabeled_images, _ = factory.get_random_batch(unlabeled_dataset, batch_size_unlabeled)
-        print("Unlabeled images shape(#images, channels, x, y): ", unlabeled_images.shape)
+        unlabeled_batch = DatasetSampleExtractor.get_random_batch(unlabeled_dataset, batch_size_unlabeled)
+        print("Unlabeled images shape(#images, channels, x, y): ", unlabeled_batch.images.shape)
 
-        scores_for_batch = score_unlabeled_batch(unlabeled_images, feature_extractor,  pseudoinverse_covariance_matrix, mean_features_all_observations)
+        scores_for_batch = score_unlabeled_batch(unlabeled_batch.images, feature_extractor,  pseudoinverse_covariance_matrix, mean_features_all_observations)
 
         threshold = get_threshold(scores_for_batch, 0.65)
         
         print("Threshold for the batch: ", threshold)
-        transfer_function(threshold, scores_for_batch, unlabeled_images, current_batch, destination_folder, inverse_transfer_function)
+        transfer_function(threshold, scores_for_batch, unlabeled_batch.images, current_batch, destination_folder, inverse_transfer_function)
 
 if __name__ == "__main__":
    main()
