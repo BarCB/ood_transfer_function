@@ -13,11 +13,12 @@ class MahalanobisScore(ScoreDelegate):
         super().__init__()
 
     def score_batch(self, unlabeled_batch: DatasetBatch) -> List[int]:
-        gauss_likelihoods_final_all_obs = []        
         #Extrats feature for each unlabeled image
-        for current_image_index in range(0, unlabeled_batch.size):
-            features_bunch_unlabeled, _ = self.feature_extractor.get_batch_features(unlabeled_batch.images, 1, current_image_index)
-            likelihoods_gauss_batch = self.__calculate_mahalanobis_distance(features_bunch_unlabeled)
+        gauss_likelihoods_final_all_obs = []
+        for image_index in range(0, unlabeled_batch.size):
+            image = unlabeled_batch.images[image_index:image_index+1, :, :, :]
+            features_bunch = self.feature_extractor.extract_features(image)
+            likelihoods_gauss_batch = self.__calculate_mahalanobis_distance(features_bunch)
             gauss_likelihoods_final_all_obs += [likelihoods_gauss_batch]
             
         return gauss_likelihoods_final_all_obs

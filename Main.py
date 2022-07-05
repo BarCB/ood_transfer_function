@@ -7,23 +7,6 @@ from OODScores.MahalanobisScore import MahalanobisScore
 from torchvision.utils import save_image
 from pathlib import Path
 
-def score_unlabeled_batch(unlabeled_images, feature_extractor : FeatureExtractor, pseudoinverse_covariance_matrix, mean_features_all_observations):
-    print("Evaluating Mahalanobis distance for unlabeled data...")
-    gauss_likelihoods_final_all_obs = []
-    unlabeled_num_images = unlabeled_images.shape[0]
-    print("Number of unlabeled images", unlabeled_num_images)
-    
-    #Extrats feature for each unlabeled image
-    for current_batch_num_unlabeled in range(0, unlabeled_num_images):
-        values_features_bunch_unlabeled, _ = feature_extractor.get_batch_features(unlabeled_images, 1, current_batch_num_unlabeled)
-        # go  through each dimension, and calculate the likelihood for the whole unlabeled dataset
-        likelihoods_gauss_batch = md.calculate_Mahalanobis_distance(pseudoinverse_covariance_matrix, values_features_bunch_unlabeled, mean_features_all_observations)
-        gauss_likelihoods_final_all_obs += [likelihoods_gauss_batch]
-        
-    #Mahalanobis distance by unlabeled image batch
-    print(gauss_likelihoods_final_all_obs)
-    return gauss_likelihoods_final_all_obs
-
 def get_threshold(score_per_image, percent_to_filter):
     """
     Get the threshold according to the list of observations and the percent of data to filter
@@ -52,7 +35,6 @@ def transfer_function(threshold : int, scores_for_batch, images, current_batch, 
             image_fullname = os.path.join(path, str(category), str(image_index) + ".png")
             category += 1
             save_image(images[image_index], image_fullname)
-
 
 def main():
     batch_size_labeled = 60
