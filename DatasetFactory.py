@@ -20,9 +20,9 @@ class DatasetFactory:
         print(dataset)
         return dataset
 
-    def create_unlabeled_dataset(self, augmented_dataset_type:DatasetsEnum, augmentation_probability:float):
+    def create_unlabeled_dataset(self, augmented_dataset_type:DatasetsEnum):
         datasetPath = os.path.join(self.datasets_path, augmented_dataset_type.value)    
-        dataset = torchvision.datasets.ImageFolder(datasetPath, transform = self.__get_transformation2(augmentation_probability))
+        dataset = torchvision.datasets.ImageFolder(datasetPath, transform = self.__get_transformation())
         print("Unlabeled dataset created")   
         print(dataset)
         return dataset
@@ -32,17 +32,3 @@ class DatasetFactory:
             transforms.Resize((120,120)),
             transforms.ToTensor(),
             ])
-
-    def __get_transformation2(self, augmentation_probability:float):
-        return transforms.Compose([
-            transforms.Resize((120,120)),
-            transforms.ToTensor(),
-            transforms.RandomInvert(p=augmentation_probability)
-            ])
-
-    def __get_albumentation_transformation(self):
-        return A.Compose([
-            A.augmentations.geometric.resize.Resize(120, 120),
-            A.RGBShift(r_shift_limit=25, g_shift_limit=25, b_shift_limit=25, p=0.9), #Cambia aleatoriamente los valores para cada canal de la imagen RGB de entrada.
-            ToTensorV2(),
-        ])

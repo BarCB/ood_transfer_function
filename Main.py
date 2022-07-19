@@ -40,17 +40,16 @@ def main():
     batch_size_labeled = 60
     batch_size_unlabeled = 60
     batch_quantity = 1
-    augmentation_probability = 0.5
     unlabeled_dataset_name = DatasetsEnum.GaussianNoise
     inverse_transfer_function = True
 
     factory = DatasetFactory("C:\\Users\\Barnum\\Desktop\\datasets")
     labeled_dataset = factory.create_training_dataset(DatasetsEnum.MNIST)
-    unlabeled_dataset = factory.create_unlabeled_dataset(unlabeled_dataset_name, augmentation_probability)
+    unlabeled_dataset = factory.create_unlabeled_dataset(unlabeled_dataset_name)
     if(not inverse_transfer_function):
-        destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments\\" + unlabeled_dataset_name.value + "_positive_p"+str(augmentation_probability) + "_from" + str(batch_size_unlabeled) + "Images"
+        destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments\\" + unlabeled_dataset_name.value + "_positive_p" + "_from" + str(batch_size_unlabeled) + "Images"
     else:
-        destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments\\" + unlabeled_dataset_name.value + "_negative_p"+str(augmentation_probability) + "_from" + str(batch_size_unlabeled) + "Images"
+        destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments\\" + unlabeled_dataset_name.value + "_negative_p" + "_from" + str(batch_size_unlabeled) + "Images"
 
     labeled_batch = DatasetSampleExtractor.get_random_batch(labeled_dataset, batch_size_labeled)
     print("Labeled images shape(#images, channels, x, y): ", labeled_batch.images.shape)
