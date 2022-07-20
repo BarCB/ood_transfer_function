@@ -1,4 +1,5 @@
 import os
+from DatasetBatch import DatasetBatch
 from DatasetFactory import DatasetFactory
 from DatasetsEnum import DatasetsEnum
 from FeatureExtractor import FeatureExtractor
@@ -6,35 +7,17 @@ from DatasetSampleExtractor import DatasetSampleExtractor
 from OODScores.MahalanobisScore import MahalanobisScore
 from torchvision.utils import save_image
 from pathlib import Path
+from TransferFunctions.PercentageTransferFunction import PercentageTransferFunction
 
-def get_threshold(score_per_image, percent_to_filter):
-    """
-    Get the threshold according to the list of observations and the percent of data to filter
-    :param percent_to_filter: value from 0 to 1
-    :return: the threshold
-    """
-    copied_list = score_per_image.copy()
-    copied_list.sort()
-    num_to_filter = int(len(copied_list) * percent_to_filter)
-    threshold = copied_list[num_to_filter]
-    return threshold
-
-def transfer_function(threshold : int, scores_for_batch, images, current_batch, destination_folder, inverse_transfer_function:bool):
-    path = Path(os.path.join(destination_folder, "batch_" + str(current_batch), "train"))
+def augmentate_images(images_to_augmentate, batch:DatasetBatch, destination_folder):
+    path = Path(os.path.join(destination_folder, "all"))
     path.mkdir(parents=True, exist_ok=True)
 
-    for i in range(0, 10):
-        os.mkdir(os.path.join(path, str(i)))
-
-    category = 0
-    for image_index in range(len(scores_for_batch)):
-        if ((not inverse_transfer_function) and scores_for_batch[image_index] <= threshold) or (inverse_transfer_function and scores_for_batch[image_index] > threshold):
-            if category == 10:
-                category = 0
-            
-            image_fullname = os.path.join(path, str(category), str(image_index) + ".png")
-            category += 1
-            save_image(images[image_index], image_fullname)
+    for image_index in range(len(images_to_augmentate)):
+        if (images_to_augmentate[image_index]):
+            ## I need to augmentate the image
+            image_fullname = os.path.join(path, str(image_index) + ".png")
+            save_image(batch.images[image_index], image_fullname)
 
 def main():
     batch_size_labeled = 60
@@ -55,6 +38,7 @@ def main():
     print("Labeled images shape(#images, channels, x, y): ", labeled_batch.images.shape)
     
     mahanobis_score = MahalanobisScore(labeled_batch)
+    transfer_function = PercentageTransferFunction(0.65, inverse_transfer_function)
     for current_batch in range(0, batch_quantity):
         print("Current batch: ", current_batch)
         
@@ -62,10 +46,12 @@ def main():
         print("Unlabeled images shape(#images, channels, x, y): ", unlabeled_batch.images.shape)
 
         scores_for_batch = mahanobis_score.score_batch(unlabeled_batch)
-        threshold = get_threshold(scores_for_batch, 0.65)
+
+        images_to_augmentate = transfer_function.filter_batch(scores_for_batch)
         
-        print("Threshold for the batch: ", threshold)
-        transfer_function(threshold, scores_for_batch, unlabeled_batch.images, current_batch, destination_folder, inverse_transfer_function)
+        augmentate_images(images_to_augmentate, unlabeled_batch, destination_folder)
+        
+        
 
 if __name__ == "__main__":
    main()
