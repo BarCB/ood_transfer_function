@@ -1,12 +1,7 @@
-import torch
 import torchvision
 import torchvision.transforms as transforms
-from CudaDeviceSingleton import CudaDeviceSingleton
 from DatasetsEnum import DatasetsEnum
 import os
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-
 from pathlib import Path
 
 class DatasetFactory:
