@@ -13,21 +13,21 @@ class PercentageTransferFunction(TransferFunction):
         self.inverse_transfer_function = inverse_transfer_function
         super().__init__()
 
-    def filter_batch(self, images_score:List[float]) -> List[bool]:
+    def filter_batch(self, images_score:List[float]) -> List[float]:
         threshold = self.get_threshold(images_score)
         print("Threshold for the batch: ", threshold)
         images_to_augmentate = []
         for image_index in range(len(images_score)):
             if ((not self.inverse_transfer_function) and images_score[image_index] <= threshold) or (self.inverse_transfer_function and images_score[image_index] > threshold):
-                images_to_augmentate.append(True)
+                images_to_augmentate.append(1)
             else:
-                images_to_augmentate.append(False)
+                images_to_augmentate.append(0)
 
         return images_to_augmentate
 
     def  get_threshold(self, score_per_image):
         """
-        Gets the threshold value that marks the limits between percentage and (1 - percentage) of scores
+        Gets the threshold value that marks the limits between 'self.percentage' and (1 - percentage) of scores
         :return: score value determined to be the threshold 
         """
         copied_list = score_per_image.copy()

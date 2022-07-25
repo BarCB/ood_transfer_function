@@ -12,23 +12,24 @@ from OODScores.ScoreDelegate import ScoreDelegate
 from TransferFunctions.PercentageTransferFunction import PercentageTransferFunction
 from TransferFunctions.TransferFunction import TransferFunction
 
-def augmentate_images(images_to_augmentate, batch:DatasetBatch, destination_folder:Path):
+def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     destination_folder.mkdir(parents=True, exist_ok=True)
 
     for i in range(0, 10):
         os.mkdir(os.path.join(destination_folder, str(i)))
 
     category = 0
-    for image_index in range(len(images_to_augmentate)):
-        #if (images_to_augmentate[image_index]):
+    for image_index in range(len(augmentations_probabilities)):
+        if (augmentations_probabilities[image_index] > 0):
             ## I need to augmentate the image
-        
-        if category == 10:
-            category = 0
 
-        image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
-        save_image(batch.images[image_index], image_fullname)
-        category += 1
+            if category == 10:
+                category = 0
+
+            #Randomly save the image in each category
+            image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
+            save_image(batch.images[image_index], image_fullname)
+            category += 1
 
 def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
     for current_batch in range(0, batch_quantity):
@@ -36,9 +37,9 @@ def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datase
         unlabeled_batch = DatasetBatchExtractor.get_mix_batch(labeled_dataset, unlabeled_dataset, batch_size_unlabeled, ood_percentage)
         print("Unlabeled images shape(#images, channels, x, y): ", unlabeled_batch.images.shape)
         scores_for_batch = score.score_batch(unlabeled_batch)
-        images_to_augmentate = transfer_function.filter_batch(scores_for_batch)
+        augmentation_probabilities = transfer_function.filter_batch(scores_for_batch)
         batch_path = os.path.join(destination_folder, "batch_" + str(current_batch))
-        augmentate_images(images_to_augmentate, unlabeled_batch, Path(os.path.join(batch_path, "train")))
+        augmentate_images(augmentation_probabilities, unlabeled_batch, Path(os.path.join(batch_path, "train")))
 
         save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
 
@@ -67,7 +68,7 @@ labeled_datasets = [DatasetsEnum.MNIST]
 unlabeled_datasets = [DatasetsEnum.SALTANDPEPPER, DatasetsEnum.GaussianNoise]
 number_images = [60, 100]
 threshold = [True, False]
-ood_percentages = [0.5, 1]
+ood_percentages = [0.5, 1] #Out of distribution percentages
 augmentation_probabilities = [0.5, 1]
 # Experiment factors ------------------------------------------
 
