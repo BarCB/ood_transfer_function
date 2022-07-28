@@ -76,8 +76,8 @@ def main():
     # Parameters ------------------------------------------
     batch_size_labeled = 60
     batch_quantity = 2
-    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments"
+    datasets_path = "F:\\1 PARMA\\TESIS_BARNUM\\datasets"
+    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments"
     # Parameters ------------------------------------------
 
     #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)
