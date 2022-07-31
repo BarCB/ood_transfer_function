@@ -11,6 +11,7 @@ from pathlib import Path
 from OODScores.ScoreDelegate import ScoreDelegate
 from TransferFunctions.PercentageTransferFunction import PercentageTransferFunction
 from TransferFunctions.TransferFunction import TransferFunction
+import AugmentationUtils as AT
 
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     destination_folder.mkdir(parents=True, exist_ok=True)
@@ -22,13 +23,14 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
     for image_index in range(len(augmentations_probabilities)):
         if (augmentations_probabilities[image_index] > 0):
             ## I need to augmentate the image
+            AT.augment_image(batch.getImages[image_index], 15) #image, how_many
 
-            if category == 10:
+            if category == 10:  #Preguntar por category
                 category = 0
 
             #Randomly save the image in each category
             image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
-            save_image(batch.images[image_index], image_fullname)
+            save_image(batch.getImages[image_index], image_fullname)
             category += 1
 
 def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
@@ -39,6 +41,7 @@ def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datase
         scores_for_batch = score.score_batch(unlabeled_batch)
         augmentation_probabilities = transfer_function.filter_batch(scores_for_batch)
         batch_path = os.path.join(destination_folder, "batch_" + str(current_batch))
+        #probabilities per image
         augmentate_images(augmentation_probabilities, unlabeled_batch, Path(os.path.join(batch_path, "train")))
 
         save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
@@ -74,10 +77,17 @@ augmentation_probabilities = [0.5, 1]
 
 def main():
     # Parameters ------------------------------------------
+<<<<<<< Updated upstream
     batch_size_labeled = 60
     batch_quantity = 2
     datasets_path = "F:\\1 PARMA\\TESIS_BARNUM\\datasets"
     destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments"
+=======
+    batch_size_labeled = 20 #30
+    batch_quantity = 1      #2
+    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments2"
+>>>>>>> Stashed changes
     # Parameters ------------------------------------------
 
     #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)

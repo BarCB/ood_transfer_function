@@ -3,3 +3,6 @@ class DatasetBatch:
         self.images = images
         self.labels = labels
         self.size = size
+
+    def getImages(self):
+        return self.images

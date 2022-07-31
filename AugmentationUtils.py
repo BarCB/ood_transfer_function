@@ -40,8 +40,8 @@ def visualize_bbox(img, bbox, class_name, color=(255, 0, 0), thickness=5):
     return img
 
 
-def augment_image(image, how_many):
-    #Ver dimension de la imagen
+def augment_image(image, how_many, probability):
+    #Image dimension
     w = image.width 
     h = image.height 
     print(w,h)
@@ -52,27 +52,29 @@ def augment_image(image, how_many):
     transform = A.Compose(
         [
             A.Resize(width=w, height=h),
-            A.RandomCrop(width=1080, height=720), #recortar
-            A.RandomBrightnessContrast(p=0.2), #con 20% de probabilidad cambiara el brillo y contraste
-            A.Rotate(limit=40, p=0.9),# border_mode=cv2.BORDER_CONSTANT, #con 90% de probabilidad se va a rotar
-            A.HorizontalFlip(p=0.5), #voltear horizontal con probabilidad de 50%
-            A.VerticalFlip(p=0.1), #voltear vertical con probabilidad de 10%
-            A.RGBShift(r_shift_limit=25, g_shift_limit=25, b_shift_limit=25, p=0.9), #Cambia aleatoriamente los valores para cada canal de la imagen RGB de entrada.
+            #A.RandomCrop(width=1080, height=720), #recortar pero que sea menor a la imagen 
+            A.RandomBrightnessContrast(p=probability), #con 20% de probabilidad cambiara el brillo y contraste
+            A.Rotate(limit=40, p=probability),# border_mode=cv2.BORDER_CONSTANT, #con 90% de probabilidad se va a rotar
+            A.HorizontalFlip(p=probability), #voltear horizontal con probabilidad de 50%
+            A.VerticalFlip(p=probability), #voltear vertical con probabilidad de 10%
+            A.RGBShift(r_shift_limit=25, g_shift_limit=25, b_shift_limit=25, p=probability), #Cambia aleatoriamente los valores para cada canal de la imagen RGB de entrada.
             #Se escoge uno de los siguientes con probabilidad del 10%
             A.OneOf([
-                A.Blur(blur_limit=3, p=0.5), #Desenfocar con tamaño de nucleo a desenforcar y probabilidad
+                A.Blur(blur_limit=3, p=probability), #Desenfocar con tamaño de nucleo a desenforcar y probabilidad
                 #A.ColorJitter(p=0.5), #Fluctuar color (El brillo, el contraste y la saturación)
-            ], p=1.0),
+            ], p=probability),
         ]
     )
 
 
     images_list = [image]
-    image = np.array(image) #convertir a arreglo de numpy
+    #Convert to numpy arry
+    image = np.array(image) 
     for i in range(how_many):
-        #transform devuelve un diccionario
-        augmentations = transform(image=image)#arg es la imagen a la que se le aplica la trasnformacion
-        augmented_img = augmentations["image"] #se toma la imagen
-        images_list.append(augmented_img) #se agrega a una lista
-
-    plot_examples(images_list) #Visualizar imagenes
+        #The arg is the image to be trasformed
+        augmentations = transform(image=image)
+        #transform returns a dictionary and the image is in the key image
+        augmented_img = augmentations["image"] 
+        images_list.append(augmented_img) 
+    #Visualize images
+    plot_examples(images_list) 
