@@ -9,6 +9,8 @@ import albumentations as A
 import numpy as np
 from PIL import Image #PIL es para la manipulacion de imagenes
                       #Opencv2 ya trae manejo de imagenes 
+import torch
+import torchvision.transforms as T
 
 def visualize(image):
     plt.figure(figsize=(10, 10))
@@ -23,14 +25,14 @@ def plot_examples(images, bboxes=None):
 
     for i in range(1, len(images)):
         if bboxes is not None:
-            img = visualize_bbox(images[i - 1], bboxes[i - 1], class_name="Cat")
+            img = visualize_bbox(images[i - 1], bboxes[i - 1])
         else:
             img = images[i-1]
         fig.add_subplot(rows, columns, i)
         plt.imshow(img)
     plt.show()
 
-# From https://albumentations.ai/docs/examples/example_bboxes/
+
 def visualize_bbox(img, bbox, class_name, color=(255, 0, 0), thickness=5):
     '''
     Visualiza un solo cuadro delimitador en la imagen
@@ -39,16 +41,28 @@ def visualize_bbox(img, bbox, class_name, color=(255, 0, 0), thickness=5):
     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, thickness)
     return img
 
+############This could be better in Utils ##################
+def numpyArray_to_tensor(imgArray) -> torch.Tensor:
+    return torch.tensor(imgArray)
+
+def tensor_to_PILImage(imgTensor) -> Image:
+    # define a transform to convert a tensor to PIL image
+    transform = T.ToPILImage()
+    return transform(imgTensor)
+###########################################################
+
 
 def augment_image(image, how_many, probability):
+    '''
+    Augmentates the received image and returns it 
+    '''
     #Image dimension
+    image = tensor_to_PILImage(image)
     w = image.width 
     h = image.height 
     print(w,h)
-    '''
-    A la clase compose se le pasa una lista de aumentos y devuelve una funcion 
-    de transformacion 
-    '''
+   
+    #Compose class receives a list with augmentations and it returns the transformation function
     transform = A.Compose(
         [
             A.Resize(width=w, height=h),
@@ -66,7 +80,6 @@ def augment_image(image, how_many, probability):
         ]
     )
 
-
     images_list = [image]
     #Convert to numpy arry
     image = np.array(image) 
@@ -78,3 +91,6 @@ def augment_image(image, how_many, probability):
         images_list.append(augmented_img) 
     #Visualize images
     plot_examples(images_list) 
+    #returns the image in a tensor 
+    print("numpyArray_to_tensor(images_list[1])",numpyArray_to_tensor(images_list[1])) 
+    return numpyArray_to_tensor(images_list[1])

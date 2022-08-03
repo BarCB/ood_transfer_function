@@ -21,16 +21,17 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
 
     category = 0
     for image_index in range(len(augmentations_probabilities)):
-        if (augmentations_probabilities[image_index] > 0):
-            ## I need to augmentate the image
-            AT.augment_image(batch.getImages[image_index], 15) #image, how_many
+        probability = augmentations_probabilities[image_index]
+        if (probability > 0):
+            #img is a tensor
+            img = AT.augment_image(batch.getImages()[image_index], 1, probability) #image, how_many (1), probability to be transformed
 
-            if category == 10:  #Preguntar por category
+            if category == 10:  
                 category = 0
 
             #Randomly save the image in each category
             image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
-            save_image(batch.getImages[image_index], image_fullname)
+            save_image(img, image_fullname)
             category += 1
 
 def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
@@ -77,17 +78,10 @@ augmentation_probabilities = [0.5, 1]
 
 def main():
     # Parameters ------------------------------------------
-<<<<<<< Updated upstream
-    batch_size_labeled = 60
+    batch_size_labeled = 30
     batch_quantity = 2
     datasets_path = "F:\\1 PARMA\\TESIS_BARNUM\\datasets"
-    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments"
-=======
-    batch_size_labeled = 20 #30
-    batch_quantity = 1      #2
-    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments2"
->>>>>>> Stashed changes
+    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments2"
     # Parameters ------------------------------------------
 
     #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)
