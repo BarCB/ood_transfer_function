@@ -24,6 +24,7 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
         probability = augmentations_probabilities[image_index]
         if (probability > 0):
             #img is a tensor
+            ig = batch.getImages()[image_index]
             img = AT.augment_image(batch.getImages()[image_index], 1, probability) #image, how_many (1), probability to be transformed
 
             if category == 10:  
@@ -81,7 +82,7 @@ def main():
     batch_size_labeled = 30
     batch_quantity = 2
     datasets_path = "F:\\1 PARMA\\TESIS_BARNUM\\datasets"
-    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments2"
+    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments"
     # Parameters ------------------------------------------
 
     #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)
