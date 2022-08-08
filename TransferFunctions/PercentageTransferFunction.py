@@ -3,10 +3,10 @@ from TransferFunctions.TransferFunction import TransferFunction
 
 class PercentageTransferFunction(TransferFunction):
     """
-        Transfer function based on percentage value, marks the images that enters the percentage of the best scores
+        Transfer function based on percentage value, marks the images that enters the percentage of the best scores with a 
+            100% probability and 0% to the rest
         :percentage: value between 0 and 1
         :inverse_transfer_function: marks the images outside of the percentage, the images with the worst score
-        :return: score value determined to be the threshold 
     """
     def __init__(self, percentage:float, inverse_transfer_function:bool) -> None:
         self.percentage = percentage
