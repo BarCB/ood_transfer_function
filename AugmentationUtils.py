@@ -56,7 +56,7 @@ def resizeTensor(tensor) -> torch.Tensor:
 ###########################################################
 
 
-def augment_image(image, how_many, probability):
+def augment_image(image, probability):
     '''
     Augmentates the received image and returns it 
     '''
@@ -87,7 +87,7 @@ def augment_image(image, how_many, probability):
     augmentations = transform(image=image)
     #transform returns a dictionary and the image is in the key image
     augmented_img = augmentations["image"] 
-    augmented_img = numpyArray_to_tensor(augmented_img)
-    augmented_img = resizeTensor(augmented_img)
+    #augmented_img = numpyArray_to_tensor(augmented_img)
+    #augmented_img = resizeTensor(augmented_img)
 
     return augmented_img

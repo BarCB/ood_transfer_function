@@ -12,6 +12,7 @@ from OODScores.ScoreDelegate import ScoreDelegate
 from TransferFunctions.PercentageTransferFunction import PercentageTransferFunction
 from TransferFunctions.TransferFunction import TransferFunction
 import AugmentationUtils as AT
+from PIL import Image
 
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     destination_folder.mkdir(parents=True, exist_ok=True)
@@ -24,8 +25,8 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
         probability = augmentations_probabilities[image_index]
         if (probability > 0):
             #img is a tensor
-            ig = batch.getImages()[image_index]
-            img = AT.augment_image(batch.getImages()[image_index], 1, probability) #image, how_many (1), probability to be transformed
+            img = AT.augment_image(batch.getImages()[image_index], probability) 
+            img = Image.fromarray(img)
 
             if category == 10:  
                 category = 0
@@ -33,6 +34,7 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
             #Randomly save the image in each category
             image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
             save_image(img, image_fullname)
+            img.save(image_fullname)
             category += 1
 
 def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
