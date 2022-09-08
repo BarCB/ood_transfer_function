@@ -1,62 +1,18 @@
-import random
-import cv2
-from matplotlib import pyplot as plt
-import matplotlib.patches as patches
+
 import numpy as np
 import albumentations as A
-import cv2
-import albumentations as A
-import numpy as np
-from PIL import Image #PIL es para la manipulacion de imagenes
-                      #Opencv2 ya trae manejo de imagenes 
+from PIL import Image #Image manipulation
 import torch
 import torchvision.transforms as T
 
-def visualize(image):
-    plt.figure(figsize=(10, 10))
-    plt.axis('off')
-    plt.imshow(image)
-    plt.show()
 
-def plot_examples(images, bboxes=None):
-    fig = plt.figure(figsize=(15, 15))
-    columns = 4
-    rows = 5
-
-    for i in range(1, len(images)+1):
-        if bboxes is not None:
-            img = visualize_bbox(images[i - 1], bboxes[i - 1])
-        else:
-            img = images[i-1]
-        fig.add_subplot(rows, columns, i)
-        plt.imshow(img)
-    plt.show()
-
-
-def visualize_bbox(img, bbox, class_name, color=(255, 0, 0), thickness=5):
-    '''
-    Visualiza un solo cuadro delimitador en la imagen
-    '''
-    x_min, y_min, x_max, y_max = map(int, bbox)
-    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, thickness)
-    return img
-
-############This could be better in Utils ##################
-def numpyArray_to_tensor(imgArray) -> torch.Tensor:
-    return torch.Tensor(imgArray)
-
-def tensor_to_PILImage(imgTensor) -> Image:
+def tensor_to_PILImage(imgTensor:torch.Tensor) -> Image:
     # define a transform to convert a tensor to PIL image
     transform = T.ToPILImage()
     return transform(imgTensor)
 
-def resizeTensor(tensor) -> torch.Tensor:
-    return tensor.resize_(tensor.shape[2], tensor.shape[1], tensor.shape[0])
 
-###########################################################
-
-
-def augment_image(image, probability):
+def augment_image(image:torch.Tensor, probability:float):
     '''
     Augmentates the received image and returns it 
     '''
@@ -86,8 +42,5 @@ def augment_image(image, probability):
     #The arg is the image to be trasformed
     augmentations = transform(image=image)
     #transform returns a dictionary and the image is in the key image
-    augmented_img = augmentations["image"] 
-    #augmented_img = numpyArray_to_tensor(augmented_img)
-    #augmented_img = resizeTensor(augmented_img)
-
+    augmented_img = augmentations["image"]
     return augmented_img

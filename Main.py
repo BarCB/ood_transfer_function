@@ -33,7 +33,6 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
 
             #Randomly save the image in each category
             image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
-            save_image(img, image_fullname)
             img.save(image_fullname)
             category += 1
 
@@ -81,10 +80,10 @@ augmentation_probabilities = [0.5, 1]
 
 def main():
     # Parameters ------------------------------------------
-    batch_size_labeled = 30
+    batch_size_labeled = 60
     batch_quantity = 2
-    datasets_path = "F:\\1 PARMA\\TESIS_BARNUM\\datasets"
-    destination_folder = "F:\\1 PARMA\TESIS_BARNUM\\experiments"
+    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments"
     # Parameters ------------------------------------------
 
     #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)
