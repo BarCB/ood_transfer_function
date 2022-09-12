@@ -1,78 +1,46 @@
-import random
-import cv2
-from matplotlib import pyplot as plt
-import matplotlib.patches as patches
+
 import numpy as np
 import albumentations as A
-import cv2
-import albumentations as A
-import numpy as np
-from PIL import Image #PIL es para la manipulacion de imagenes
-                      #Opencv2 ya trae manejo de imagenes 
+from PIL import Image #Image manipulation
+import torch
+import torchvision.transforms as T
 
-def visualize(image):
-    plt.figure(figsize=(10, 10))
-    plt.axis('off')
-    plt.imshow(image)
-    plt.show()
 
-def plot_examples(images, bboxes=None):
-    fig = plt.figure(figsize=(15, 15))
-    columns = 4
-    rows = 5
+def tensor_to_PILImage(imgTensor:torch.Tensor) -> Image:
+    # define a transform to convert a tensor to PIL image
+    transform = T.ToPILImage()
+    return transform(imgTensor)
 
-    for i in range(1, len(images)):
-        if bboxes is not None:
-            img = visualize_bbox(images[i - 1], bboxes[i - 1], class_name="Cat")
-        else:
-            img = images[i-1]
-        fig.add_subplot(rows, columns, i)
-        plt.imshow(img)
-    plt.show()
 
-# From https://albumentations.ai/docs/examples/example_bboxes/
-def visualize_bbox(img, bbox, class_name, color=(255, 0, 0), thickness=5):
+def augment_image(image:torch.Tensor, probability:float):
     '''
-    Visualiza un solo cuadro delimitador en la imagen
+    Augmentates the received image and returns it 
     '''
-    x_min, y_min, x_max, y_max = map(int, bbox)
-    cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, thickness)
-    return img
-
-
-def augment_image(image, how_many):
-    #Ver dimension de la imagen
-    w = image.width 
-    h = image.height 
-    print(w,h)
-    '''
-    A la clase compose se le pasa una lista de aumentos y devuelve una funcion 
-    de transformacion 
-    '''
+    #Image dimension
+    image = tensor_to_PILImage(image)
+    w = image.width
+    h = image.height
+    #Compose class receives a list with augmentations and it returns the transformation function
     transform = A.Compose(
         [
-            A.Resize(width=w, height=h),
-            A.RandomCrop(width=1080, height=720), #recortar
-            A.RandomBrightnessContrast(p=0.2), #con 20% de probabilidad cambiara el brillo y contraste
-            A.Rotate(limit=40, p=0.9),# border_mode=cv2.BORDER_CONSTANT, #con 90% de probabilidad se va a rotar
-            A.HorizontalFlip(p=0.5), #voltear horizontal con probabilidad de 50%
-            A.VerticalFlip(p=0.1), #voltear vertical con probabilidad de 10%
-            A.RGBShift(r_shift_limit=25, g_shift_limit=25, b_shift_limit=25, p=0.9), #Cambia aleatoriamente los valores para cada canal de la imagen RGB de entrada.
-            #Se escoge uno de los siguientes con probabilidad del 10%
+            #It Chooses only one of the transformations
             A.OneOf([
-                A.Blur(blur_limit=3, p=0.5), #Desenfocar con tamaño de nucleo a desenforcar y probabilidad
-                #A.ColorJitter(p=0.5), #Fluctuar color (El brillo, el contraste y la saturación)
-            ], p=1.0),
+                A.RandomCrop(width=w-5, height=h-5, p=probability),
+                A.Resize(width=w-5, height=h+5, p=probability),
+                A.Rotate(limit=20, p=probability),
+                A.Blur(blur_limit=5, p=probability), 
+                A.OpticalDistortion(p=probability),
+                A.GaussNoise (var_limit=(10, 300), p=probability),
+                A.Emboss (alpha=(0.2, 0.5), strength=(0.2, 0.7), p=probability),
+                A.PixelDropout (dropout_prob=0.01, drop_value=0, p=probability),
+                A.Solarize (p=probability)
+            ], p=probability),
         ]
     )
 
-
-    images_list = [image]
-    image = np.array(image) #convertir a arreglo de numpy
-    for i in range(how_many):
-        #transform devuelve un diccionario
-        augmentations = transform(image=image)#arg es la imagen a la que se le aplica la trasnformacion
-        augmented_img = augmentations["image"] #se toma la imagen
-        images_list.append(augmented_img) #se agrega a una lista
-
-    plot_examples(images_list) #Visualizar imagenes
+    image = np.array(image) 
+    #The arg is the image to be trasformed
+    augmentations = transform(image=image)
+    #transform returns a dictionary and the image is in the key image
+    augmented_img = augmentations["image"]
+    return augmented_img

@@ -11,6 +11,8 @@ from pathlib import Path
 from OODScores.ScoreDelegate import ScoreDelegate
 from TransferFunctions.PercentageTransferFunction import PercentageTransferFunction
 from TransferFunctions.TransferFunction import TransferFunction
+import AugmentationUtils as AT
+from PIL import Image
 
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     destination_folder.mkdir(parents=True, exist_ok=True)
@@ -20,15 +22,18 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
 
     category = 0
     for image_index in range(len(augmentations_probabilities)):
-        if (augmentations_probabilities[image_index] > 0):
-            ## I need to augmentate the image
+        probability = augmentations_probabilities[image_index]
+        if (probability > 0):
+            #img is a tensor
+            img = AT.augment_image(batch.getImages()[image_index], probability) 
+            img = Image.fromarray(img)
 
-            if category == 10:
+            if category == 10:  
                 category = 0
 
             #Randomly save the image in each category
             image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
-            save_image(batch.images[image_index], image_fullname)
+            img.save(image_fullname)
             category += 1
 
 def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
@@ -39,6 +44,7 @@ def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datase
         scores_for_batch = score.score_batch(unlabeled_batch)
         augmentation_probabilities = transfer_function.filter_batch(scores_for_batch)
         batch_path = os.path.join(destination_folder, "batch_" + str(current_batch))
+        #probabilities per image
         augmentate_images(augmentation_probabilities, unlabeled_batch, Path(os.path.join(batch_path, "train")))
 
         save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
