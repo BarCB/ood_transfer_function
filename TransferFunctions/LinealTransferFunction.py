@@ -1,7 +1,7 @@
 from typing import List
 from TransferFunctions.TransferFunction import TransferFunction
 
-class DescendTransferFunction(TransferFunction):
+class LinealTransferFunction(TransferFunction):
     """
         Transfer function that assigns an augmentation probability based on how well the score is,
         the worst score will receive a probability of zero and as the score goes better the probability
