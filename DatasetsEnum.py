@@ -5,3 +5,4 @@ class DatasetsEnum(Enum):
     TINYIMAGENET = "TINYIMAGENET"
     SALTANDPEPPER = "SALTANDPEPPER"
     MNIST = "MNIST"
+    SVHN = "SVHN"

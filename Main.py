@@ -1,5 +1,4 @@
 import os
-
 from cv2 import threshold
 from DatasetBatch import DatasetBatch
 from DatasetFactory import DatasetFactory
@@ -13,6 +12,8 @@ from TransferFunctions.PercentageTransferFunction import PercentageTransferFunct
 from TransferFunctions.TransferFunction import TransferFunction
 import AugmentationUtils as AT
 from PIL import Image
+from TransferFunctions.TransferFunctionEnum import TransferFunctionEnum
+from TransferFunctions.TransferFunctionFactory import TransferFunctionFactory
 
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     destination_folder.mkdir(parents=True, exist_ok=True)
@@ -36,7 +37,7 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
             img.save(image_fullname)
             category += 1
 
-def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
+def create_experiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
     for current_batch in range(0, batch_quantity):
         print("Current batch: ", current_batch)
         unlabeled_batch = DatasetBatchExtractor.get_mix_batch(labeled_dataset, unlabeled_dataset, batch_size_unlabeled, ood_percentage)
@@ -49,7 +50,7 @@ def CreateExperiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datase
 
         save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
 
-def GenerateLabeledBatches(batch_quantity:int, destination_folder, dataset_path, batch_size:int):
+def generate_labeled_batches(batch_quantity:int, destination_folder, dataset_path, batch_size:int):
     dataset_factory = DatasetFactory(dataset_path)
     dataset_train = dataset_factory.create_training_dataset(DatasetsEnum.MNIST)                                                                                
     destination_folder = Path(os.path.join(destination_folder, "labeled"))
@@ -71,22 +72,22 @@ def save_labeled_batch(train_batch:DatasetBatch, batch_path):
 
 # Experiment factors ------------------------------------------
 labeled_datasets = [DatasetsEnum.MNIST]
-unlabeled_datasets = [DatasetsEnum.SALTANDPEPPER, DatasetsEnum.GaussianNoise]
+unlabeled_datasets = [DatasetsEnum.SVHN]
 number_images = [60, 100]
-threshold = [True, False]
-ood_percentages = [0.5, 1] #Out of distribution percentages
-augmentation_probabilities = [0.5, 1]
+transfer_functions = [TransferFunctionEnum.LinealFunction]
+ood_percentages = [0.5] #Out of distribution percentages
+
 # Experiment factors ------------------------------------------
 
 def main():
     # Parameters ------------------------------------------
     batch_size_labeled = 60
-    batch_quantity = 2
+    batch_quantity = 10
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
     destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments"
     # Parameters ------------------------------------------
 
-    #GenerateLabeledBatches(batch_quantity, destination_folder, datasets_path)
+    generate_labeled_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled)
 
     factory = DatasetFactory(datasets_path)
     for labeled_dataset_name in labeled_datasets:
@@ -100,17 +101,12 @@ def main():
 
             for unlabeled_dataset_name in unlabeled_datasets:
                 unlabeled_dataset = factory.create_unlabeled_dataset(unlabeled_dataset_name)        
-                for inverse_transfer_function in threshold:
+                for transfer_function_type in transfer_functions:
                     for ood_percentage in ood_percentages:
-                        for augmentation_probability in augmentation_probabilities:
-                            if(inverse_transfer_function):
-                                inverse = "positive"
-                            else:
-                                inverse = "negative"
-                            experiment_path = os.path.join(destination_folder, "unlabeled", labeled_dataset_name.value + "_" + unlabeled_dataset_name.value + "_ood"+ str(ood_percentage)+"_"+inverse+"_ap"+ str(augmentation_probability) + "_images" + str(batch_size_unlabeled))
+                        experiment_path = os.path.join(destination_folder, "unlabeled", labeled_dataset_name.value + "_" + unlabeled_dataset_name.value + "_ood"+ str(ood_percentage)+"_"+transfer_function_type.value + "_images" + str(batch_size_unlabeled))
 
-                            transfer_function = PercentageTransferFunction(0.65, inverse_transfer_function)
-                            CreateExperiment(test_batch, batch_quantity, labeled_dataset, unlabeled_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_unlabeled, ood_percentage)        
+                        transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
+                        create_experiment(test_batch, batch_quantity, labeled_dataset, unlabeled_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_unlabeled, ood_percentage)        
 
 if __name__ == "__main__":
    main()
