@@ -1,7 +1,7 @@
 import torch
-from BalancedBatchSampler import BalancedBatchSampler
+from Batch.BalancedBatchSampler import BalancedBatchSampler
 from CudaDeviceSingleton import CudaDeviceSingleton
-from DatasetBatch import DatasetBatch
+from Batch.DatasetBatch import DatasetBatch
 import torch.utils.data as tData
 
 class DatasetBatchExtractor:
@@ -30,9 +30,11 @@ class DatasetBatchExtractor:
         
     def dataloader_to_batch(dataloader:tData.DataLoader, batch_size:int) -> DatasetBatch:
         device = CudaDeviceSingleton().get_device()
-        for image, label in dataloader:
-            #move data to specific device
-            images = image.to(device)
-            labels = label.to(device)
+        data_iterator = iter(dataloader)
+        image, label = next(data_iterator)
+        
+        #move data to specific device
+        images = image.to(device)
+        labels = label.to(device)
         
         return DatasetBatch(images, labels, batch_size)

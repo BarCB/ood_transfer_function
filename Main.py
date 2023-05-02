@@ -1,9 +1,10 @@
 import os
+import shutil
 from cv2 import threshold
-from DatasetBatch import DatasetBatch
+from Batch.DatasetBatch import DatasetBatch
 from DatasetFactory import DatasetFactory
 from DatasetsEnum import DatasetsEnum
-from DatasetBatchExtractor import DatasetBatchExtractor
+from Batch.DatasetBatchExtractor import DatasetBatchExtractor
 from OODScores.MahalanobisScore import MahalanobisScore
 from torchvision.utils import save_image
 from pathlib import Path
@@ -16,11 +17,6 @@ from TransferFunctions.TransferFunctionEnum import TransferFunctionEnum
 from TransferFunctions.TransferFunctionFactory import TransferFunctionFactory
 
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
-    destination_folder.mkdir(parents=True, exist_ok=True)
-
-    for i in range(0, 10):
-        os.mkdir(os.path.join(destination_folder, str(i)))
-
     category = 0
     for image_index in range(len(augmentations_probabilities)):
         probability = augmentations_probabilities[image_index]
@@ -33,9 +29,17 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
                 category = 0
 
             #Randomly save the image in each category
-            image_fullname = os.path.join(destination_folder, str(category), str(image_index) + ".png")
+            image_fullname = os.path.join(destination_folder, str(batch.labels[image_index].item()), str(image_index) + ".png")
             img.save(image_fullname)
             category += 1
+
+def create_destination_folder(destination_path:Path):
+    if destination_path.exists() and destination_path.is_dir():
+        shutil.rmtree(destination_path)
+    destination_path.mkdir(parents=True, exist_ok=True)
+
+    for i in range(0, 10):
+        os.mkdir(os.path.join(destination_path, str(i)))
 
 def create_experiment(test_batch:DatasetBatch, batch_quantity:int, labeled_dataset, unlabeled_dataset, score:ScoreDelegate, transfer_function:TransferFunction, destination_folder, batch_size_unlabeled, ood_percentage:float):
     for current_batch in range(0, batch_quantity):
@@ -46,24 +50,26 @@ def create_experiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datas
         augmentation_probabilities = transfer_function.filter_batch(scores_for_batch)
         batch_path = os.path.join(destination_folder, "batch_" + str(current_batch))
         #probabilities per image
-        augmentate_images(augmentation_probabilities, unlabeled_batch, Path(os.path.join(batch_path, "train")))
+        train_path = Path(os.path.join(batch_path, "train"))
+        create_destination_folder(train_path)
+        augmentate_images(augmentation_probabilities, unlabeled_batch, train_path)
 
-        save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
+        save_image_batch(test_batch, os.path.join(batch_path, "test"))
 
-def generate_labeled_batches(batch_quantity:int, destination_folder, dataset_path, batch_size:int):
+def generate_labeled_batches(batch_quantity:int, destination_folder:Path, dataset_path:Path, batch_size:int, test_size:int):
     dataset_factory = DatasetFactory(dataset_path)
     dataset_train = dataset_factory.create_training_dataset(DatasetsEnum.MNIST)                                                                                
     destination_folder = Path(os.path.join(destination_folder, "labeled"))
     
-    test_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, batch_size)
+    test_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, test_size)
     for batch_index in range(batch_quantity):
         train_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, batch_size)
         batch_path = os.path.join(destination_folder, "batch_" + str(batch_index))
         
-        save_labeled_batch(train_batch, os.path.join(batch_path, "train"))
-        save_labeled_batch(test_batch, os.path.join(batch_path, "test"))
+        save_image_batch(train_batch, os.path.join(batch_path, "train"))
+        save_image_batch(test_batch, os.path.join(batch_path, "test"))
 
-def save_labeled_batch(train_batch:DatasetBatch, batch_path):
+def save_image_batch(train_batch:DatasetBatch, batch_path:Path):
     for i in range(10):
         Path(os.path.join(batch_path, str(i))).mkdir(parents=True, exist_ok=True)
 
@@ -73,21 +79,21 @@ def save_labeled_batch(train_batch:DatasetBatch, batch_path):
 # Experiment factors ------------------------------------------
 labeled_datasets = [DatasetsEnum.MNIST]
 unlabeled_datasets = [DatasetsEnum.SVHN]
-number_images = [60, 100]
-transfer_functions = [TransferFunctionEnum.LinealFunction]
+number_images = [100]
+transfer_functions = [TransferFunctionEnum.StepFunctionPositive]
 ood_percentages = [0.5] #Out of distribution percentages
-
 # Experiment factors ------------------------------------------
 
 def main():
     # Parameters ------------------------------------------
-    batch_size_labeled = 60
+    batch_size_labeled = 100
     batch_quantity = 10
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments"
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments3"
+    test_size = 60
     # Parameters ------------------------------------------
 
-    generate_labeled_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled)
+    #generate_labeled_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled, test_size)
 
     factory = DatasetFactory(datasets_path)
     for labeled_dataset_name in labeled_datasets:
@@ -96,8 +102,7 @@ def main():
         print("Labeled images shape(#images, channels, x, y): ", labeled_batch.images.shape)
         mahanobis_score = MahalanobisScore(labeled_batch)
         for batch_size_unlabeled in number_images:
-            # All 
-            test_batch = DatasetBatchExtractor.get_random_batch(labeled_dataset, batch_size_unlabeled)
+            test_batch = DatasetBatchExtractor.get_random_batch(labeled_dataset, test_size)
 
             for unlabeled_dataset_name in unlabeled_datasets:
                 unlabeled_dataset = factory.create_unlabeled_dataset(unlabeled_dataset_name)        

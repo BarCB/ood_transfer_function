@@ -4,7 +4,7 @@ from typing import List
 from FeatureExtractor import FeatureExtractor
 from CudaDeviceSingleton import CudaDeviceSingleton
 from OODScores.ScoreDelegate import ScoreDelegate
-from DatasetBatch import DatasetBatch
+from Batch.DatasetBatch import DatasetBatch
 
 class MahalanobisScore(ScoreDelegate):
     def __init__(self, labeled_batch:DatasetBatch) -> None:
@@ -54,8 +54,7 @@ class MahalanobisScore(ScoreDelegate):
         
         #calculate the covariance matrix
         covariance_matrix = np.cov(features_all_observations)
-        covariance_matrix_pinverse = torch.tensor(covariance_matrix, dtype=torch.float, device=device)
+        covariance_matrix_pinverse = torch.tensor(covariance_matrix, device=device, dtype=torch.float)
         
         #return the cov mat as a tensor
-        covariance_matrix_pinv_torch = torch.tensor(covariance_matrix_pinverse, device=device, dtype = torch.float)
-        return covariance_matrix_pinv_torch, mean_features_all_observations
+        return covariance_matrix_pinverse, mean_features_all_observations
