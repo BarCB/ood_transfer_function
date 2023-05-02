@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
-from Batch.DatasetBatch import DatasetBatch
+from Batches.DatasetBatch import DatasetBatch
 
 class ScoreDelegate(ABC):
     """

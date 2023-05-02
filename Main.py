@@ -1,10 +1,10 @@
 import os
 import shutil
 from cv2 import threshold
-from Batch.DatasetBatch import DatasetBatch
+from Batches.DatasetBatch import DatasetBatch
 from DatasetFactory import DatasetFactory
 from DatasetsEnum import DatasetsEnum
-from Batch.DatasetBatchExtractor import DatasetBatchExtractor
+from Batches.DatasetBatchExtractor import DatasetBatchExtractor
 from OODScores.MahalanobisScore import MahalanobisScore
 from torchvision.utils import save_image
 from pathlib import Path

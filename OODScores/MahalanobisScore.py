@@ -4,7 +4,7 @@ from typing import List
 from FeatureExtractor import FeatureExtractor
 from CudaDeviceSingleton import CudaDeviceSingleton
 from OODScores.ScoreDelegate import ScoreDelegate
-from Batch.DatasetBatch import DatasetBatch
+from Batches.DatasetBatch import DatasetBatch
 
 class MahalanobisScore(ScoreDelegate):
     def __init__(self, labeled_batch:DatasetBatch) -> None:
