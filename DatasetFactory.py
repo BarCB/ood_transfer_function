@@ -16,7 +16,7 @@ class DatasetFactory:
         return dataset
 
     def create_unlabeled_dataset(self, augmented_dataset_type:DatasetsEnum):
-        datasetPath = os.path.join(self.datasets_path, augmented_dataset_type.value)    
+        datasetPath = os.path.join(self.datasets_path, augmented_dataset_type.value, "all")    
         dataset = torchvision.datasets.ImageFolder(datasetPath, transform = self.__get_transformation())
         print("Unlabeled dataset created")   
         print(dataset)
