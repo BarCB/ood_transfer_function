@@ -18,10 +18,12 @@ class FeatureExtractor:
       data = ImageDataLoaders.from_folder(path)
       # save learner to reload it as a pytorch model
       learner = Learner(data, self.model, metrics=[accuracy])
+
       path = os.path.join(os.getcwd(),"final_model_bah.pk")
       learner.export(path)
       torch_dict = torch.load(path)
       os.remove("final_model_bah.pk")
+
       # get the model
       model_loaded = torch_dict.model
       model_loaded.eval()

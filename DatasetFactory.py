@@ -23,6 +23,6 @@ class DatasetFactory:
 
     def __get_transformation(self):
         return transforms.Compose([
-            transforms.Resize((120,120)),
+            transforms.Resize((63,63)),
             transforms.ToTensor(),
             ])
