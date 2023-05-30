@@ -87,7 +87,7 @@ ood_percentages = [0.5] #Out of distribution percentages
 
 def main():
     # Parameters ------------------------------------------
-    batch_size_labeled = 100
+    batch_size_labeled = 25000  #MNIST has 42k images but for hardware capacity 25000 is used
     batch_quantity = 10
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
     destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments3"
