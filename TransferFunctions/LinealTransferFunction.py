@@ -11,8 +11,8 @@ class LinealTransferFunction(TransferFunction):
     def filter_batch(self, images_score:List[float]) -> List[float]:
         augmentation_probabilities = []
         if len(images_score) == 1:
-            augmentation_probabilities.append(1);
-            return augmentation_probabilities;
+            augmentation_probabilities.append(1)
+            return augmentation_probabilities
 
         max_score = max(images_score)        
         for score in images_score:

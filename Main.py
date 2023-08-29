@@ -57,10 +57,10 @@ def create_experiment(test_batch:DatasetBatch, batch_quantity:int, labeled_datas
         augmentate_images(augmentation_probabilities, unlabeled_batch, train_path)
         save_image_batch(test_batch, Path(batch_path, "test"))
 
-def generate_labeled_batches(batch_quantity:int, destination_folder:Path, dataset_path:Path, batch_size:int, test_size:int):
+def generate_source_batches(batch_quantity:int, destination_folder:Path, dataset_path:Path, batch_size:int, test_size:int):
     dataset_factory = DatasetFactory(dataset_path)
     dataset_train = dataset_factory.create_training_dataset(DatasetsEnum.MNIST)                                                                                
-    destination_folder = Path(destination_folder, "labeled")
+    destination_folder = Path(destination_folder, "source")
     
     test_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, test_size)
     for batch_index in range(batch_quantity):
@@ -70,32 +70,7 @@ def generate_labeled_batches(batch_quantity:int, destination_folder:Path, datase
         save_image_batch(train_batch, Path(batch_path, "train"))
         save_image_batch(test_batch, Path(batch_path, "test"))
 
-def save_image_batch(train_batch:DatasetBatch, batch_path:Path):
-    for i in range(10):
-        Path(batch_path, str(i)).mkdir(parents=True, exist_ok=True)
-
-    for image_index in range(train_batch.size):
-        save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
-
-# Experiment factors ------------------------------------------
-labeled_datasets = [DatasetsEnum.MNIST]
-unlabeled_datasets = [DatasetsEnum.SVHN]
-number_images = [100]
-transfer_functions = [TransferFunctionEnum.StepFunctionPositive]
-ood_percentages = [0.5] #Out of distribution percentages
-# Experiment factors ------------------------------------------
-
-def main():
-    # Parameters ------------------------------------------
-    batch_size_labeled = 25000  #MNIST has 42k images but for hardware capacity 25000 is used
-    batch_quantity = 10
-    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments3"
-    test_size = 60
-    # Parameters ------------------------------------------
-
-    #generate_labeled_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled, test_size)
-
+def generate_target_batches(batch_size_labeled:int, batch_quantity:int, datasets_path:Path, destination_folder:Path, test_size:int):
     factory = DatasetFactory(datasets_path)
     for labeled_dataset_name in labeled_datasets:
         labeled_dataset = factory.create_training_dataset(labeled_dataset_name)
@@ -109,11 +84,39 @@ def main():
                 unlabeled_dataset = factory.create_unlabeled_dataset(unlabeled_dataset_name)        
                 for transfer_function_type in transfer_functions:
                     for ood_percentage in ood_percentages:
-                        experiment_path = Path(destination_folder, "unlabeled", labeled_dataset_name.value + "_" + unlabeled_dataset_name.value + 
+                        experiment_path = Path(destination_folder, "target", labeled_dataset_name.value + "_" + unlabeled_dataset_name.value + 
                                                 "_ood" + str(ood_percentage)+"_" + transfer_function_type.value + "_images" + str(batch_size_unlabeled))
 
                         transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
-                        create_experiment(test_batch, batch_quantity, labeled_dataset, unlabeled_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_unlabeled, ood_percentage)        
+                        create_experiment(test_batch, batch_quantity, labeled_dataset, unlabeled_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_unlabeled, ood_percentage)   
+
+def save_image_batch(train_batch:DatasetBatch, batch_path:Path):
+    for i in range(10):
+        Path(batch_path, str(i)).mkdir(parents=True, exist_ok=True)
+
+    for image_index in range(train_batch.size):
+        save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
+
+# Experiment factors ------------------------------------------
+labeled_datasets = [DatasetsEnum.MNIST]
+unlabeled_datasets = [DatasetsEnum.GaussianNoise]
+number_images = [100]
+transfer_functions = [TransferFunctionEnum.StepFunctionPositive]
+ood_percentages = [0.5] #Out of distribution percentages
+# Experiment factors ------------------------------------------
+
+def main():
+    # Parameters ------------------------------------------
+    batch_size_labeled = 25000  #MNIST has 42k images but for hardware capacity 25000 is used
+    batch_quantity = 10
+    datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments4"
+    test_size = 100
+    # Parameters ------------------------------------------
+
+    #generate_source_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled, test_size)
+
+    generate_target_batches(batch_size_labeled, batch_quantity, datasets_path, destination_folder, test_size) 
 
 if __name__ == "__main__":
    main()
