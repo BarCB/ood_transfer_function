@@ -12,11 +12,11 @@ class MahalanobisScore(ScoreDelegate):
         self.pseudoinverse_covariance_matrix, self.labeled_features_mean = self.__calculate_covariance_matrix_pseudoinverse(labeled_batch)
         super().__init__()
 
-    def score_batch(self, unlabeled_batch: DatasetBatch) -> List[int]:
+    def score_batch(self, target_batch: DatasetBatch) -> List[int]:
         #Extrats feature for each unlabeled image
         gauss_likelihoods_final_all_obs = []
-        for image_index in range(0, unlabeled_batch.size):
-            image = unlabeled_batch.images[image_index:image_index+1, :, :, :]
+        for image_index in range(0, target_batch.size):
+            image = target_batch.images[image_index:image_index+1, :, :, :]
             features_bunch = self.feature_extractor.extract_features(image)
             likelihoods_gauss_batch = self.__calculate_mahalanobis_distance(features_bunch)
             gauss_likelihoods_final_all_obs += [likelihoods_gauss_batch]

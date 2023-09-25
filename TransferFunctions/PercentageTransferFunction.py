@@ -25,7 +25,7 @@ class PercentageTransferFunction(TransferFunction):
 
         return images_to_augmentate
 
-    def  get_threshold(self, score_per_image):
+    def  get_threshold(self, score_per_image) -> float:
         """
         Gets the threshold value that marks the limits between 'self.percentage' and (1 - percentage) of scores
         :return: score value determined to be the threshold 

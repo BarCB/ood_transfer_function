@@ -15,10 +15,11 @@ The following packages are necessary:
   <li>numpy 1.23</li>
 </ul>
 
-
 ## Installation Steps
 
 <ol>
+  <li>Install Anaconda</li>
+  <li>Create an environment with Python 3.10</li>
   <li>If a GPU cuda ready is available:</li>
   <ol>
     <li>Install CUDA Toolkit 11.6 from https://developer.nvidia.com/cuda-11-6-0-download-archive?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local</li>
