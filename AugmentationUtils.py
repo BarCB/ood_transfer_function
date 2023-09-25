@@ -37,10 +37,13 @@ def augment_image(image:torch.Tensor, probability:float):
             ], p=probability),
         ]
     )
-
+    should_augmentate = True
     image = np.array(image) 
-    #The arg is the image to be trasformed
-    augmentations = transform(image=image)
-    #transform returns a dictionary and the image is in the key image
-    augmented_img = augmentations["image"]
-    return augmented_img
+    if(should_augmentate):
+        #The arg is the image to be trasformed
+        augmentations = transform(image=image)
+        #transform returns a dictionary and the image is in the key image
+        augmented_img = augmentations["image"]
+        return augmented_img
+    else:
+        return image

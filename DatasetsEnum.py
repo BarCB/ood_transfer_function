@@ -6,3 +6,4 @@ class DatasetsEnum(Enum):
     SALTANDPEPPER = "SALTANDPEPPER"
     MNIST = "MNIST"
     SVHN = "SVHN"
+    CatsVsDogs = "CatsVsDogs"
