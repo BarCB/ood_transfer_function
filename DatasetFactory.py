@@ -15,7 +15,7 @@ class DatasetFactory:
         return dataset
 
     def create_unlabeled_dataset(self, augmented_dataset_type:DatasetsEnum):
-        datasetPath = Path(self.datasets_path, augmented_dataset_type.value, "all")    
+        datasetPath = Path(self.datasets_path, augmented_dataset_type.value)    
         dataset = torchvision.datasets.ImageFolder(datasetPath, transform = self.__get_transformation())
         print("Unlabeled dataset created")   
         print(dataset)
@@ -25,4 +25,4 @@ class DatasetFactory:
         return transforms.Compose([
             transforms.Resize((63,63)),
             transforms.ToTensor(),
-            ])
+        ])

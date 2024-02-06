@@ -18,7 +18,7 @@ class PercentageTransferFunction(TransferFunction):
         print("Threshold for the batch: ", threshold)
         images_to_augmentate = []
         for image_index in range(len(images_score)):
-            if ((not self.inverse_transfer_function) and images_score[image_index] <= threshold) or (self.inverse_transfer_function and images_score[image_index] > threshold):
+            if ((not self.inverse_transfer_function) and images_score[image_index] < threshold) or (self.inverse_transfer_function and images_score[image_index] >= threshold):
                 images_to_augmentate.append(1)
             else:
                 images_to_augmentate.append(0)

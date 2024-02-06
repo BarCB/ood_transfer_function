@@ -1,5 +1,4 @@
 import shutil
-from cv2 import threshold
 from Batches.DatasetBatch import DatasetBatch
 from DatasetFactory import DatasetFactory
 from DatasetsEnum import DatasetsEnum
@@ -18,12 +17,18 @@ from TransferFunctions.TransferFunctionFactory import TransferFunctionFactory
 def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destination_folder:Path):
     for image_index in range(len(augmentations_probabilities)):
         probability = augmentations_probabilities[image_index]
-        image_fullname = Path(destination_folder, str(batch.labels[image_index].item()), str(image_index) + ".png")
-        if (probability > 0):
-            #img is a tensor
-            img = AT.augment_image(batch.getImages()[image_index], probability) 
-            img = Image.fromarray(img)
-            img.save(image_fullname)
+        images = AT.augment_image(batch.getImages()[image_index], probability) 
+    
+        pil_image = Image.fromarray(images[1])
+        image_fullname = Path(destination_folder, str(batch.labels[image_index].item()))
+        pil_image.save(Path(image_fullname, f"{str(image_index)}_original.png"))
+
+        was_augmented = images[0]
+        if(was_augmented):
+            pil_image = Image.fromarray(images[2])
+            pil_image.save(Path(image_fullname, f"{str(image_index)}_augmented.png"))
+
+
 
 def create_destination_folder(destination_path:Path):
     if destination_path.exists() and destination_path.is_dir():
@@ -94,9 +99,9 @@ def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categorie
 # Experiment factors ------------------------------------------
 source_datasets = [DatasetsEnum.CatsVsDogs]
 target_datasets = [DatasetsEnum.GaussianNoise]
-number_images = [20, 40, 80]
-transfer_functions = [TransferFunctionEnum.StepFunctionPositive, TransferFunctionEnum.StepFunctionNegative]
-ood_percentages = [0, 0.5] #Out of distribution percentages
+number_images = [80]
+transfer_functions = [TransferFunctionEnum.LinealFunction]
+ood_percentages = [0.5] #Out of distribution percentages
 # Experiment factors ------------------------------------------
 
 def main():
@@ -104,7 +109,7 @@ def main():
     batch_size_source = 10000  #MNIST has 42k images but for hardware capacity 25000 is used
     batch_quantity = 10
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments4"
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments5"
     test_size = 100
     # Parameters ------------------------------------------
 
