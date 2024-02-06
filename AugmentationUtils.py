@@ -52,3 +52,4 @@ def create_transformation(pil_image)->A.Compose:
     )
     
     return transform
+

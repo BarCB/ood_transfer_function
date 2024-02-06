@@ -28,8 +28,6 @@ def augmentate_images(augmentations_probabilities, batch:DatasetBatch, destinati
             pil_image = Image.fromarray(images[2])
             pil_image.save(Path(image_fullname, f"{str(image_index)}_augmented.png"))
 
-
-
 def create_destination_folder(destination_path:Path):
     if destination_path.exists() and destination_path.is_dir():
         shutil.rmtree(destination_path)
