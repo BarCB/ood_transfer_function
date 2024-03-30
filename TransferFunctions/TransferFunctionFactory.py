@@ -14,5 +14,5 @@ class TransferFunctionFactory():
             return LinealTransferFunction()
         elif selected_transfer_function == TransferFunctionEnum.IdentityFunctionPositive:
             return IdentityTransferFunction(True)
-        elif selected_transfer_function == TransferFunctionEnum.IdentityFunctionNegative:
+        elif selected_transfer_function == TransferFunctionEnum.NoneFunction:
             return IdentityTransferFunction(False)

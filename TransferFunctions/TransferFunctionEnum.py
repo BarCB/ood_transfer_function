@@ -5,4 +5,4 @@ class TransferFunctionEnum(Enum):
     StepFunctionNegative = "StepFunctionNegative"
     LinealFunction = "LinealFunction"
     IdentityFunctionPositive = "IdentityFunctionPositive"
-    IdentityFunctionNegative = "IdentityFunctionNegative"
+    NoneFunction = "NoneFunction"
