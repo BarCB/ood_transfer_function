@@ -7,22 +7,26 @@ class DatasetFactory:
     def __init__(self, datasets_path:Path):
         self.datasets_path = datasets_path
 
-    def create_training_dataset(self, dataset_type:DatasetsEnum):
-        labeled_path = Path(self.datasets_path, dataset_type.value, "all")
-        dataset =  torchvision.datasets.ImageFolder(labeled_path, transform = self.__get_transformation())
-        print("Training dataset created")   
+    def create_dataset(self, dataset_type:DatasetsEnum):
+        dataset_path = Path(self.datasets_path, dataset_type.value, "all")
+        transformation = self.__get_transformation()
+        if dataset_type == DatasetsEnum.MNIST:
+            transformation = self.__get_transformation_for_grey()
+
+        dataset =  torchvision.datasets.ImageFolder(dataset_path, transform = transformation)
+        print("Dataset created")   
         print(dataset)
         return dataset
 
-    def create_unlabeled_dataset(self, augmented_dataset_type:DatasetsEnum):
-        datasetPath = Path(self.datasets_path, augmented_dataset_type.value)    
-        dataset = torchvision.datasets.ImageFolder(datasetPath, transform = self.__get_transformation())
-        print("Unlabeled dataset created")   
-        print(dataset)
-        return dataset
-
+    def __get_transformation_for_grey(self):
+        return transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),
+            transforms.Resize((63, 63)),
+            transforms.ToTensor(),
+        ])
+    
     def __get_transformation(self):
         return transforms.Compose([
-            transforms.Resize((63,63)),
+            transforms.Resize((63, 63)),
             transforms.ToTensor(),
         ])

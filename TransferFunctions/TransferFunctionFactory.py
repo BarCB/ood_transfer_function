@@ -12,5 +12,7 @@ class TransferFunctionFactory():
             return PercentageTransferFunction(0.65, True)
         elif selected_transfer_function == TransferFunctionEnum.LinealFunction:
             return LinealTransferFunction()
-        elif selected_transfer_function == TransferFunctionEnum.IdentityFunction:
-            return IdentityTransferFunction()
+        elif selected_transfer_function == TransferFunctionEnum.IdentityFunctionPositive:
+            return IdentityTransferFunction(True)
+        elif selected_transfer_function == TransferFunctionEnum.NoneFunction:
+            return IdentityTransferFunction(False)

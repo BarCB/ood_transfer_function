@@ -51,34 +51,34 @@ def create_experiment(test_batch:DatasetBatch, batch_quantity:int, source_datase
             Path(train_path, str(i)).mkdir(parents=True)
 
         augmentate_images(augmentation_probabilities, target_batch, train_path)
-        save_image_batch(test_batch, Path(batch_path, "test"), number_categories)
+        #save_image_batch(test_batch, Path(batch_path, "test"), number_categories)
 
 def generate_source_batches(batch_quantity:int, destination_folder:Path, dataset_path:Path, batch_size:int, test_size:int):
     dataset_factory = DatasetFactory(dataset_path)
-    dataset_train = dataset_factory.create_training_dataset(DatasetsEnum.MNIST)                                                                                
+    dataset_train = dataset_factory.create_dataset(DatasetsEnum.MNIST)                                                                                
     destination_folder = Path(destination_folder, "source")
     
     test_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, test_size)
     for batch_index in range(batch_quantity):
-        train_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, batch_size)
+        #train_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, batch_size)
         batch_path = Path(destination_folder, "batch_" + str(batch_index))
         
-        save_image_batch(train_batch, Path(batch_path, "train"))
+        #save_image_batch(train_batch, Path(batch_path, "train"))
         save_image_batch(test_batch, Path(batch_path, "test"))
 
-def generate_target_batches(batch_size_labeled:int, batch_quantity:int, datasets_path:Path, destination_folder:Path, test_size:int):
+def generate_target_batches(source_batch_size:int, batch_quantity:int, datasets_path:Path, destination_folder:Path, test_size:int):
     factory = DatasetFactory(datasets_path)
     
     for source_dataset_name in source_datasets:
-        source_dataset = factory.create_training_dataset(source_dataset_name)
-        source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, batch_size_labeled)
+        source_dataset = factory.create_dataset(source_dataset_name)
+        source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, source_batch_size)
         print("Labeled images shape(#images, channels, x, y): ", source_batch.images.shape)
         mahanobis_score = MahalanobisScore(source_batch)
         for batch_size_unlabeled in number_images:
             test_batch = DatasetBatchExtractor.get_random_batch(source_dataset, test_size)
 
             for target_dataset_name in target_datasets:
-                target_dataset = factory.create_unlabeled_dataset(target_dataset_name)        
+                target_dataset = factory.create_dataset(target_dataset_name)        
                 for transfer_function_type in transfer_functions:
                     for ood_percentage in ood_percentages:
                         experiment_path = Path(destination_folder, "target", source_dataset_name.value + "_" + target_dataset_name.value + 
@@ -95,25 +95,25 @@ def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categorie
         save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
 
 # Experiment factors ------------------------------------------
-source_datasets = [DatasetsEnum.CatsVsDogs]
-target_datasets = [DatasetsEnum.GaussianNoise]
-number_images = [80]
-transfer_functions = [TransferFunctionEnum.LinealFunction]
-ood_percentages = [0.5] #Out of distribution percentages
+source_datasets = [DatasetsEnum.SVHN]
+target_datasets = [DatasetsEnum.SVHN]
+number_images = [200]
+transfer_functions = [TransferFunctionEnum.NoneFunction]
+ood_percentages = [0] #Out of distribution percentages
 # Experiment factors ------------------------------------------
 
 def main():
     # Parameters ------------------------------------------
-    batch_size_source = 10000  #MNIST has 42k images but for hardware capacity 25000 is used
-    batch_quantity = 10
+    source_batch_size = 10000  #MNIST has 42k images but for hardware capacity 25000 is used
+    batch_quantity = 1
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments5"
-    test_size = 100
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments6"
+    test_size = 80
     # Parameters ------------------------------------------
 
-    #generate_source_batches(batch_quantity, destination_folder, datasets_path, batch_size_labeled, test_size)
+    #generate_source_batches(batch_quantity, destination_folder, datasets_path, source_batch_size, test_size)
 
-    generate_target_batches(batch_size_source, batch_quantity, datasets_path, destination_folder, test_size) 
+    generate_target_batches(source_batch_size, batch_quantity, datasets_path, destination_folder, test_size) 
 
 if __name__ == "__main__":
    main()
