@@ -1,4 +1,5 @@
 import torch
+from pathlib import Path
 import numpy as np
 from typing import List
 from FeatureExtractor import FeatureExtractor
@@ -7,10 +8,20 @@ from OODScores.ScoreDelegate import ScoreDelegate
 from Batches.DatasetBatch import DatasetBatch
 
 class MahalanobisScore(ScoreDelegate):
-    def __init__(self, labeled_batch:DatasetBatch) -> None:
+    def __init__(self, ) -> None:
         self.feature_extractor = FeatureExtractor()
-        self.pseudoinverse_covariance_matrix, self.labeled_features_mean = self.__calculate_covariance_matrix_pseudoinverse(labeled_batch)
         super().__init__()
+
+    def create_weights(self, data_batch:DatasetBatch) -> None:
+        self.pseudoinverse_covariance_matrix, self.labeled_features_mean = self.__calculate_covariance_matrix_pseudoinverse(data_batch)
+
+    def load_weights(self, path:Path) -> None:
+        self.pseudoinverse_covariance_matrix = torch.load(Path(path, "covariance_matrix.pt"))
+        self.labeled_features_mean = torch.load(Path(path, "features_mean.pt"))
+
+    def save_weights(self, path:Path) -> None:
+        torch.save(self.pseudoinverse_covariance_matrix, Path(path, "covariance_matrix.pt"))
+        torch.save(self.labeled_features_mean, Path(path, "features_mean.pt"))
 
     def score_batch(self, target_batch: DatasetBatch) -> List[int]:
         #Extrats feature for each unlabeled image

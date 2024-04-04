@@ -33,13 +33,13 @@ def create_destination_folder(destination_path:Path):
         shutil.rmtree(destination_path)
     destination_path.mkdir(parents=True)
 
-def create_experiment(test_batch:DatasetBatch, batch_quantity:int, source_dataset, target_dataset, score:ScoreDelegate, 
-                      transfer_function:TransferFunction, destination_folder:Path, batch_size_unlabeled, ood_percentage:float):
+def create_experiment(batch_quantity:int, target_dataset, score:ScoreDelegate, 
+                      transfer_function:TransferFunction, destination_folder:Path, batch_size_target):
     create_destination_folder(destination_folder)
-    number_categories = len(source_dataset.class_to_idx)
+    number_categories = len(target_dataset.class_to_idx)
     for current_batch in range(0, batch_quantity):
         print("Current batch: ", current_batch)
-        target_batch = DatasetBatchExtractor.get_mix_batch(source_dataset, target_dataset, batch_size_unlabeled, ood_percentage)
+        target_batch = DatasetBatchExtractor.get_random_batch(target_dataset, batch_size_target)
         print("Unlabeled images shape(#images, channels, x, y): ", target_batch.images.shape)
         scores_for_batch = score.score_batch(target_batch)
         augmentation_probabilities = transfer_function.filter_batch(scores_for_batch)
@@ -51,41 +51,21 @@ def create_experiment(test_batch:DatasetBatch, batch_quantity:int, source_datase
             Path(train_path, str(i)).mkdir(parents=True)
 
         augmentate_images(augmentation_probabilities, target_batch, train_path)
-        #save_image_batch(test_batch, Path(batch_path, "test"), number_categories)
 
-def generate_source_batches(batch_quantity:int, destination_folder:Path, dataset_path:Path, batch_size:int, test_size:int):
-    dataset_factory = DatasetFactory(dataset_path)
-    dataset_train = dataset_factory.create_dataset(DatasetsEnum.MNIST)                                                                                
-    destination_folder = Path(destination_folder, "source")
-    
-    test_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, test_size)
-    for batch_index in range(batch_quantity):
-        #train_batch = DatasetBatchExtractor.get_balance_batch(dataset_train, batch_size)
-        batch_path = Path(destination_folder, "batch_" + str(batch_index))
-        
-        #save_image_batch(train_batch, Path(batch_path, "train"))
-        save_image_batch(test_batch, Path(batch_path, "test"))
+def generate_target_batches(weights_path:Path, batch_quantity:int, datasets_path:Path, destination_folder:Path):
+    factory = DatasetFactory(datasets_path)  
+    mahanobis_score = MahalanobisScore()
+    mahanobis_score.load_weights(Path("featuresExtracted", weights_path))
+    for batch_size_target in target_number_images:
+        for target_dataset_name in target_datasets:
+            target_dataset = factory.create_dataset(target_dataset_name)        
+            for transfer_function_type in transfer_functions:
+                
+                experiment_path = Path(destination_folder, "target", weights_path + "_" + target_dataset_name.value + 
+                                       "_" + str(batch_size_target) + "_" + transfer_function_type.value)
 
-def generate_target_batches(source_batch_size:int, batch_quantity:int, datasets_path:Path, destination_folder:Path, test_size:int):
-    factory = DatasetFactory(datasets_path)
-    
-    for source_dataset_name in source_datasets:
-        source_dataset = factory.create_dataset(source_dataset_name)
-        source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, source_batch_size)
-        print("Labeled images shape(#images, channels, x, y): ", source_batch.images.shape)
-        mahanobis_score = MahalanobisScore(source_batch)
-        for batch_size_unlabeled in number_images:
-            test_batch = DatasetBatchExtractor.get_random_batch(source_dataset, test_size)
-
-            for target_dataset_name in target_datasets:
-                target_dataset = factory.create_dataset(target_dataset_name)        
-                for transfer_function_type in transfer_functions:
-                    for ood_percentage in ood_percentages:
-                        experiment_path = Path(destination_folder, "target", source_dataset_name.value + "_" + target_dataset_name.value + 
-                                                "_ood" + str(ood_percentage)+"_" + transfer_function_type.value + "_images" + str(batch_size_unlabeled))
-
-                        transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
-                        create_experiment(test_batch, batch_quantity, source_dataset, target_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_unlabeled, ood_percentage)   
+                transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
+                create_experiment(batch_quantity, target_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_target)   
 
 def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categories:int):
     for i in range(number_categories):
@@ -95,25 +75,46 @@ def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categorie
         save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
 
 # Experiment factors ------------------------------------------
-source_datasets = [DatasetsEnum.SVHN]
 target_datasets = [DatasetsEnum.SVHN]
-number_images = [200]
-transfer_functions = [TransferFunctionEnum.NoneFunction]
-ood_percentages = [0] #Out of distribution percentages
+target_number_images = [100, 500, 1000, 4000]
+transfer_functions = [TransferFunctionEnum.LinealFunction, TransferFunctionEnum.NoneFunction, TransferFunctionEnum.StepFunctionNegative, TransferFunctionEnum.StepFunctionPositive]
+datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
+destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments7"
 # Experiment factors ------------------------------------------
 
-def main():
+def generate_tests():
+    dataset_name = DatasetsEnum.SVHN
+    factory = DatasetFactory(datasets_path)  
+    dataset = factory.create_dataset(dataset_name) 
+    target_batch = DatasetBatchExtractor.get_balance_batch(dataset, 1000)
+    number_categories = len(dataset.class_to_idx)
+    save_image_batch(target_batch, Path(destination_folder, "tests", dataset_name.value), number_categories)
+
+def generate_targets():
     # Parameters ------------------------------------------
-    source_batch_size = 10000  #MNIST has 42k images but for hardware capacity 25000 is used
-    batch_quantity = 1
+    batch_quantity = 10
+    
+    
+    weights_path = "MNIST_4000"
+    a = ["MNIST_400","MNIST_4000", "MNIST_40000"]
+    # Parameters ------------------------------------------
+    for b in a:
+        generate_target_batches(b, batch_quantity, datasets_path, destination_folder) 
+
+def generate_sources():
+    # Parameters ------------------------------------------
+    source_batch_size = 40000  #MNIST has 42k images but for hardware capacity 25000 is used
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments6"
-    test_size = 80
-    # Parameters ------------------------------------------
+    destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments7"
+    factory = DatasetFactory(datasets_path)
+    source_dataset = factory.create_dataset(DatasetsEnum.MNIST)
+    source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, source_batch_size)
+    mahanobis_score = MahalanobisScore()
+    mahanobis_score.create_weights(source_batch)
+    mahanobis_score.save_weights(Path("featuresExtracted", "MNIST_" + str(source_batch_size)))
 
-    #generate_source_batches(batch_quantity, destination_folder, datasets_path, source_batch_size, test_size)
-
-    generate_target_batches(source_batch_size, batch_quantity, datasets_path, destination_folder, test_size) 
+    number_categories = len(source_dataset.class_to_idx)
+    save_image_batch(source_batch, Path(destination_folder, "sources", DatasetsEnum.MNIST.value + str(source_batch_size)), number_categories)
 
 if __name__ == "__main__":
-   main()
+   generate_tests()
