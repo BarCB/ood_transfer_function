@@ -1,8 +1,9 @@
 from enum import Enum
 
 class TransferFunctionEnum(Enum):
-    StepFunctionPositive = "StepFunctionPositive"
-    StepFunctionNegative = "StepFunctionNegative"
+    StepPositiveFunction = "StepFunctionPositive"
+    StepNegativeFunction = "StepFunctionNegative"
     LinealFunction = "LinealFunction"
-    IdentityFunctionPositive = "IdentityFunctionPositive"
+    IdentityPositiveFunction = "IdentityFunctionPositive"
     NoneFunction = "NoneFunction"
+    StepPositiveDoubleFunction = "StepDoubleFunctionPositive"

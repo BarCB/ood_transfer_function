@@ -27,6 +27,9 @@ class DatasetBatchExtractor:
         labels = torch.cat((batch.labels, ood_batch.labels), 0)
 
         return DatasetBatch(images, labels, batch_size)
+    
+    def get_max_batch(dataset:tData.Dataset) -> DatasetBatch:
+        return DatasetBatchExtractor.get_random_batch(dataset, len(dataset))
         
     def dataloader_to_batch(dataloader:tData.DataLoader, batch_size:int) -> DatasetBatch:
         device = CudaDeviceSingleton().get_device()
