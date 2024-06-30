@@ -78,13 +78,13 @@ def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categorie
         save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
 
 # Experiment factors ------------------------------------------
-target_datasets = [DatasetsEnum.MNIST]
-contamination_dataset_name = DatasetsEnum.CatsVsDogs
-target_number_images = [10]
-transfer_functions = [TransferFunctionEnum.StepPositiveFunction]
-ood_percentage = 0.5
+target_datasets = [DatasetsEnum.Indiana]
+contamination_dataset_name = DatasetsEnum.China
+target_number_images = [100]
+transfer_functions = [TransferFunctionEnum.StepNegativeFunction]
+ood_percentage = 0.50
 datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments10"
+destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments12"
 # Experiment factors ------------------------------------------
 
 def generate_tests():
@@ -97,29 +97,31 @@ def generate_tests():
 
 def generate_targets():
     # Parameters ------------------------------------------
-    batch_quantity = 10
+    batch_quantity = 30
     
     
     
-    a = ["MNIST_40000"]
+    a = ["Indiana_142"]
     # Parameters ------------------------------------------
     for b in a:
         generate_target_batches(b, batch_quantity, datasets_path, destination_folder) 
 
 def generate_sources():
     # Parameters ------------------------------------------
-    source_batch_size = 138  #MNIST has 42k images but for hardware capacity 25000 is used
+    source_batch_size = 40000  #MNIST has 42k images but for hardware capacity 25000 is used
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
     factory = DatasetFactory(datasets_path)
-    dataset = DatasetsEnum.China
+    dataset = DatasetsEnum.MNIST
     source_dataset = factory.create_dataset(dataset)
     source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, source_batch_size)
     mahanobis_score = MahalanobisScore()
     mahanobis_score.create_weights(source_batch)
-    mahanobis_score.save_weights(Path("featuresExtracted", dataset.value + "_" + str(source_batch_size)))
+    wights_path = Path("featuresExtracted", dataset.value + "_" + str(source_batch_size))
+    wights_path.mkdir(parents=True, exist_ok=True)
+    mahanobis_score.save_weights(wights_path)
 
-    number_categories = len(source_dataset.class_to_idx)
-    save_image_batch(source_batch, Path(destination_folder, "sources", dataset.value + str(source_batch_size)), number_categories)
+    generate_targets = len(source_dataset.class_to_idx)
+    #save_image_batch(source_batch, Path(destination_folder, "sources", dataset.value + "_"+ str(source_batch_size)), number_categories)
 
 if __name__ == "__main__":
    generate_targets()

@@ -1,4 +1,3 @@
-import torch
 import torchvision.models as models
 from fastai.vision.all import *
 from fastai.vision.data import *
@@ -14,21 +13,9 @@ class FeatureExtractor:
       Gets a feature extractor from a model
       param model: is the fastAI model
       """
-      path = untar_data(URLs.MNIST_SAMPLE)
-      data = ImageDataLoaders.from_folder(path)
-      # save learner to reload it as a pytorch model
-      learner = Learner(data, self.model, metrics=[accuracy])
-
-      path = os.path.join(os.getcwd(),"final_model_bah.pk")
-      learner.export(path)
-      torch_dict = torch.load(path)
-      os.remove("final_model_bah.pk")
-
-      # get the model
-      model_loaded = torch_dict.model
-      model_loaded.eval()
+      self.model.eval()
       device = CudaDeviceSingleton().get_device()
-      model_loaded = model_loaded.to(device=device)
+      model_loaded = self.model.to(device=device)
       # usually the last set of layers act as classifier, therefore we discard it    
       feature_extractor = model_loaded.features
       return feature_extractor

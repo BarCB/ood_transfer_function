@@ -9,7 +9,7 @@ class TransferFunctionFactory():
         if selected_transfer_function == TransferFunctionEnum.StepPositiveFunction:
             return PercentageTransferFunction(0.65, False)
         elif selected_transfer_function == TransferFunctionEnum.StepNegativeFunction:
-            return PercentageTransferFunction(0.65, True)
+            return PercentageTransferFunction(0.35, True)
         elif selected_transfer_function == TransferFunctionEnum.LinealFunction:
             return LinealTransferFunction()
         elif selected_transfer_function == TransferFunctionEnum.IdentityPositiveFunction:
