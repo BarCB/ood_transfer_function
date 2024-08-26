@@ -58,17 +58,18 @@ def generate_target_batches(weights_path:Path, batch_quantity:int, datasets_path
     factory = DatasetFactory(datasets_path)  
     mahanobis_score = MahalanobisScore()
     mahanobis_score.load_weights(Path("featuresExtracted", weights_path))
-    contamination_dataset = factory.create_dataset(contamination_dataset_name)
-    for batch_size_target in target_number_images:
-        for target_dataset_name in target_datasets:
-            target_dataset = factory.create_dataset(target_dataset_name)        
-            for transfer_function_type in transfer_functions:
-                
-                experiment_path = Path(destination_folder, "targets", weights_path + "_" + target_dataset_name.value + 
-                                       "_" + str(batch_size_target) + "_" + transfer_function_type.value)
+    for contamination_dataset_name in contamination_datasets:
+        contamination_dataset = factory.create_dataset(contamination_dataset_name)
+        for batch_size_target in target_number_images:
+            for target_dataset_name in target_datasets:
+                target_dataset = factory.create_dataset(target_dataset_name)        
+                for transfer_function_type in transfer_functions:
+                    
+                    experiment_path = Path(destination_folder, "targets", weights_path + "_" + target_dataset_name.value + 
+                                        "_" + str(batch_size_target) + "_" + transfer_function_type.value+ "_"+ contamination_dataset_name.value +"_" + str(ood_percentage))
 
-                transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
-                create_experiment(batch_quantity, target_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_target, contamination_dataset)   
+                    transfer_function = TransferFunctionFactory.create_transfer_function(transfer_function_type)
+                    create_experiment(batch_quantity, target_dataset, mahanobis_score, transfer_function, experiment_path, batch_size_target, contamination_dataset)   
 
 def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categories:int):
     for i in range(number_categories):
@@ -78,13 +79,13 @@ def save_image_batch(train_batch:DatasetBatch, batch_path:Path, number_categorie
         save_image(train_batch.images[image_index], Path(batch_path, str(train_batch.labels[image_index].item()), str(image_index) + ".png"))
 
 # Experiment factors ------------------------------------------
-target_datasets = [DatasetsEnum.Indiana]
-contamination_dataset_name = DatasetsEnum.China
+target_datasets = [DatasetsEnum.CR]
+contamination_datasets = [DatasetsEnum.China, DatasetsEnum.CRSnP,DatasetsEnum.CatsVsDogs]
 target_number_images = [100]
-transfer_functions = [TransferFunctionEnum.StepNegativeFunction]
+transfer_functions = [TransferFunctionEnum.StepNegativeFunction, TransferFunctionEnum.StepPositiveFunction, TransferFunctionEnum.NoneFunction, TransferFunctionEnum.IdentityPositiveFunction, TransferFunctionEnum.LinealFunction]
 ood_percentage = 0.50
 datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
-destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments12"
+destination_folder = "C:\\Users\\Barnum\\Desktop\\experiments13"
 # Experiment factors ------------------------------------------
 
 def generate_tests():
@@ -100,18 +101,17 @@ def generate_targets():
     batch_quantity = 30
     
     
-    
-    a = ["Indiana_142"]
+    a = ["CR_130"]
     # Parameters ------------------------------------------
     for b in a:
         generate_target_batches(b, batch_quantity, datasets_path, destination_folder) 
 
 def generate_sources():
     # Parameters ------------------------------------------
-    source_batch_size = 40000  #MNIST has 42k images but for hardware capacity 25000 is used
+    source_batch_size = 130  #MNIST has 42k images but for hardware capacity 25000 is used
     datasets_path = "C:\\Users\\Barnum\\Desktop\\datasets"
     factory = DatasetFactory(datasets_path)
-    dataset = DatasetsEnum.MNIST
+    dataset = DatasetsEnum.CR
     source_dataset = factory.create_dataset(dataset)
     source_batch = DatasetBatchExtractor.get_random_batch(source_dataset, source_batch_size)
     mahanobis_score = MahalanobisScore()
