@@ -99,8 +99,6 @@ def generate_tests():
 def generate_targets():
     # Parameters ------------------------------------------
     batch_quantity = 30
-    
-    
     a = ["CR_130"]
     # Parameters ------------------------------------------
     for b in a:
